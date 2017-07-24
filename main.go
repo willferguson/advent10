@@ -113,7 +113,7 @@ func main() {
 	for d := range parseInputData() {
 		b := GetBot(d.BotId)
 		d.Apply(b)
-		Process(b.Id)
+		Process(b)
 	}
 }
 
@@ -167,15 +167,14 @@ func parseInputData() <-chan botDiff {
 Process recursively checks and executes the bots actions if they are in the ready state to do so. The recursion
 runs the same checks against any modified bots.
  */
-func Process(id int) {
-	b := GetBot(id)
-	toProcess := []int{}
+func Process(b *bot) {
+	toProcess := []*bot{}
 	if b.ReadyToSend() {
 		//Pass on low value
 		if (b.LowTargetType == TYPE_BOT) {
 			lb := GetBot(b.LowTargetId)
 			lb.Receive(b.Values[0])
-			toProcess = append(toProcess, b.LowTargetId)
+			toProcess = append(toProcess, GetBot(b.LowTargetId))
 		} else {
 			GetBin(b.LowTargetId).Receive(b.Values[0])
 		}
@@ -183,7 +182,7 @@ func Process(id int) {
 		if (b.HighTargetType == TYPE_BOT) {
 			hb := GetBot(b.HighTargetId)
 			hb.Receive(b.Values[1])
-			toProcess = append(toProcess, b.HighTargetId)
+			toProcess = append(toProcess, GetBot(b.HighTargetId))
 		} else {
 			GetBin(b.HighTargetId).Receive(b.Values[1])
 		}
